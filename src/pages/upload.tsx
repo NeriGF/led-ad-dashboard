@@ -34,6 +34,15 @@ export default function UploadPage() {
     }
   };
 
+  const handleCheckout = async () => {
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+    });
+
+    const data = await res.json();
+    window.location.href = data.url;
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <h1>Upload Ad</h1>
@@ -45,7 +54,12 @@ export default function UploadPage() {
       {type === "image" && (
         <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} />
       )}
-      <button onClick={handleUpload}>Upload</button>
+      <div style={{ marginTop: 10 }}>
+        <button onClick={handleUpload}>Upload</button>
+        <button onClick={handleCheckout} style={{ marginLeft: 10 }}>
+          Unlock More Ads (Preview)
+        </button>
+      </div>
       <p>{message}</p>
     </div>
   );
