@@ -44,23 +44,35 @@ export default function UploadPage() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Upload Ad</h1>
-      <input placeholder="Ad Title" onChange={(e) => setTitle(e.target.value)} />
-      <select onChange={(e) => setType(e.target.value)}>
-        <option value="text">Text</option>
-        <option value="image">Image</option>
-      </select>
-      {type === "image" && (
-        <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-      )}
-      <div style={{ marginTop: 10 }}>
-        <button onClick={handleUpload}>Upload</button>
-        <button onClick={handleCheckout} style={{ marginLeft: 10 }}>
-          Unlock More Ads (Preview)
-        </button>
-      </div>
-      <p>{message}</p>
+  <div style={{ padding: 20 }}>
+    <h1>Upload Ad</h1>
+
+    <input
+      placeholder="Ad Title"
+      onChange={(e) => setTitle(e.target.value)}
+    />
+    <select onChange={(e) => setType(e.target.value)}>
+      <option value="text">Text</option>
+      <option value="image">Image</option>
+    </select>
+
+    {type === "image" && (
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setFile(e.target.files?.[0] || null)}
+      />
+    )}
+
+    <div style={{ marginTop: 10 }}>
+      <button onClick={handleUpload}>Upload</button>
+      <button onClick={handleCheckout} style={{ marginLeft: 10 }}>
+        Unlock More Ads (Preview)
+      </button>
     </div>
-  );
+
+    <p>{message}</p>
+  </div>
+);
+
 }
