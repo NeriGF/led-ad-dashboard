@@ -1,5 +1,5 @@
 // src/pages/upload.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { storage, db } from "../lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore";
@@ -9,6 +9,22 @@ export default function UploadPage() {
   const [type, setType] = useState("text");
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const sessionId = url.searchParams.get("session_id");
+
+    if (sessionId) {
+      fetch(`/api/verify-session?session_id=${sessionId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.paid) {
+            setUnlocked(true);
+          }
+        });
+    }
+  }, []);
 
   const handleUpload = async () => {
     try {
@@ -35,8 +51,8 @@ export default function UploadPage() {
   };
 
   const handleCheckout = async () => {
-    const res = await fetch('/api/create-checkout-session', {
-      method: 'POST',
+    const res = await fetch("/api/create-checkout-session", {
+      method: "POST",
     });
 
     const data = await res.json();
@@ -44,35 +60,38 @@ export default function UploadPage() {
   };
 
   return (
-  <div style={{ padding: 20 }}>
-    <h1>Upload Ad</h1>
+    <div style={{ padding: 20 }}>
+      <h1>Upload Ad</h1>
 
-    <input
-      placeholder="Ad Title"
-      onChange={(e) => setTitle(e.target.value)}
-    />
-    <select onChange={(e) => setType(e.target.value)}>
-      <option value="text">Text</option>
-      <option value="image">Image</option>
-    </select>
-
-    {type === "image" && (
       <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setFile(e.target.files?.[0] || null)}
+        placeholder="Ad Title"
+        onChange={(e) => setTitle(e.target.value)}
       />
-    )}
+      <select onChange={(e) => setType(e.target.value)}>
+        <option value="text">Text</option>
+        <option value="image">Image</option>
+      </select>
 
-    <div style={{ marginTop: 10 }}>
-      <button onClick={handleUpload}>Upload</button>
-      <button onClick={handleCheckout} style={{ marginLeft: 10 }}>
-        Unlock More Ads (Preview)
-      </button>
+      {type === "image" && (
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+        />
+      )}
+
+      <div style={{ marginTop: 20 }}>
+        {unlocked ? (
+          <>
+            <h3>🎉 Premium unlocked!</h3>
+            <button onClick={handleUpload}>Upload</button>
+          </>
+        ) : (
+          <button onClick={handleCheckout}>Unlock More Ads (Preview)</button>
+        )}
+      </div>
+
+      <p>{message}</p>
     </div>
-
-    <p>{message}</p>
-  </div>
-);
-
+  );
 }
