@@ -1,6 +1,8 @@
 // src/pages/api/create-checkout-session.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
+import { db } from '@/lib/firebase'; // ✅ make sure this path is correct
+import { collection, addDoc } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2022-11-15',
@@ -27,8 +29,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           quantity: 1,
         },
       ],
-      success_url: `${req.headers.origin}/success`,
+      // ✅ This is where session_id gets passed in URL
+      success_url: `${req.headers.origin}/upload?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.origin}/`,
+    });
+
+    // ✅ OPTIONAL: Save Stripe session ID to Firestore
+    await addDoc(collection(db, 'stripe_sessions'), {
+      sessionId: session.id,
+      createdAt: new Date(),
     });
 
     res.status(200).json({ url: session.url });
