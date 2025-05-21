@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Generated Story-Driven Marketing</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { max-width: 500px; margin: auto; padding: 20px; }
+        .story-box { background: #f4f4f4; padding: 10px; border-radius: 5px; margin-top: 10px; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>AI-Generated Story-Driven Marketing</h2>
+        <input id="brand" type="text" placeholder="Enter Brand Name" /><br><br>
+        <input id="goal" type="text" placeholder="Enter Campaign Goal" /><br><br>
+        <button onclick="generateStory()">Generate Story</button>
+
+        <div id="storyOutput" class="story-box"></div>
+        <div id="generatedImage"></div>
+        <div id="choices"></div>
+    </div>
+
+   <script>
+    async function generateStory() {
+        const brandName = document.getElementById("brand").value;
+        const campaignGoal = document.getElementById("goal").value;
+
+        document.getElementById("storyOutput").innerHTML = "Generating story...";
+        document.getElementById("choices").innerHTML = "";
+        document.getElementById("generatedImage").innerHTML = "";
+
+        try {
+            const response = await fetch("http://127.0.0.1:5001/generate-story", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ brandName, campaignGoal })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            document.getElementById("storyOutput").innerHTML = `<p>${data.story}</p>`;
+
+            // ✅ Add image
+            if (data.imageUrl) {
+                document.getElementById("generatedImage").innerHTML =
+                    `<img src="${data.imageUrl}" alt="Generated Image" style="max-width: 100%; margin-top: 10px;" />`;
+            }
+
+            // Show interactive choices
+            const choicesDiv = document.getElementById("choices");
+            data.choices.forEach(choice => {
+                const button = document.createElement("button");
+                button.innerText = choice;
+                button.onclick = () => alert(`You chose: ${choice}`);
+                choicesDiv.appendChild(button);
+            });
+
+        } catch (error) {
+            console.error("Error:", error);
+            document.getElementById("storyOutput").innerHTML = "Error fetching story.";
+        }
+    }
+</script>
+</body>
+</html>
