@@ -1,77 +1,67 @@
 // src/pages/story.tsx
 import { useState } from "react";
 
-export default function StoryBuilder() {
+export default function StoryPage() {
   const [brandName, setBrandName] = useState("");
   const [campaignGoal, setCampaignGoal] = useState("");
   const [story, setStory] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
 
-  const handleGenerate = async () => {
+  const generateStory = async () => {
     setLoading(true);
+    setStory("");
+    setImageUrl("");
+
     const res = await fetch("http://localhost:5001/generate-story", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ brandName, campaignGoal }),
     });
+
     const data = await res.json();
     setStory(data.story);
     setImageUrl(data.imageUrl);
     setLoading(false);
   };
 
-  const handleCheckout = async () => {
-    const res = await fetch("/api/create-checkout-session", { method: "POST" });
-    const data = await res.json();
-    window.location.href = data.url;
-  };
-
-  // Session verification for paywall unlock
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const sessionId = url.searchParams.get("session_id");
-    if (sessionId) {
-      fetch(`/api/verify-session?session_id=${sessionId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.paid) setUnlocked(true);
-        });
-    }
-  }, []);
-
   return (
-    <div style={{ padding: 40 }}>
-      <h1>AI Story-Driven Marketing</h1>
+    <div style={{ padding: 40, maxWidth: 800, margin: "0 auto", fontFamily: "sans-serif" }}>
+      <h1>AI-Generated Story-Driven Marketing</h1>
 
       <input
         placeholder="Brand Name"
+        value={brandName}
         onChange={(e) => setBrandName(e.target.value)}
-        style={{ marginBottom: 10, display: "block" }}
+        style={{ marginRight: 10 }}
       />
       <input
         placeholder="Campaign Goal"
+        value={campaignGoal}
         onChange={(e) => setCampaignGoal(e.target.value)}
-        style={{ marginBottom: 20, display: "block" }}
       />
-      <button onClick={handleGenerate} disabled={loading}>
+      <br />
+      <button onClick={generateStory} style={{ marginTop: 20 }}>
         {loading ? "Generating..." : "Generate Story"}
       </button>
 
       {story && (
-        <div style={{ marginTop: 30 }}>
-          <h3>Your Story</h3>
+        <div style={{ marginTop: 30, padding: 20, backgroundColor: "#f7f7f7", borderRadius: 8 }}>
+          <h2>Generated Story</h2>
           <p>{story}</p>
-          {imageUrl && <img src={imageUrl} alt="Generated Visual" width="400" />}
 
-          {unlocked ? (
-            <button style={{ marginTop: 20 }}>Download Story & Image</button>
-          ) : (
-            <button onClick={handleCheckout} style={{ marginTop: 20 }}>
-              Unlock Download ($2.99)
-            </button>
+          {imageUrl && (
+            <>
+              <h3>Generated Visual</h3>
+              <img src={imageUrl} alt="Generated Visual" style={{ width: "100%", maxWidth: 400 }} />
+            </>
           )}
+
+          <div style={{ marginTop: 20 }}>
+            <button>Continue</button>
+            <button style={{ marginLeft: 10 }}>Explore Features</button>
+            <button style={{ marginLeft: 10 }}>Buy Now</button>
+          </div>
         </div>
       )}
     </div>
