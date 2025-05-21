@@ -5,10 +5,19 @@ import os
 from dotenv import load_dotenv
 from firebase_admin import credentials, firestore, initialize_app
 import uuid
+import base64
+import json
+import tempfile
 
-# ✅ Firebase Admin setup
-from firebase_admin import credentials, firestore, initialize_app
-cred = credentials.Certificate("/Users/ngarciafigue/Desktop/led-ad-dashboard/led-ad-e2c24-firebase-adminsdk-fbsvc-9f0abbd0ce.json")  # Replace path
+# Decode from env var and write to a temp file
+firebase_json_base64 = os.environ.get("FIREBASE_ADMIN_JSON")
+firebase_json = base64.b64decode(firebase_json_base64).decode("utf-8")
+
+with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".json") as f:
+    f.write(firebase_json)
+    firebase_path = f.name
+
+cred = credentials.Certificate(firebase_path)
 initialize_app(cred)
 db = firestore.client()
 
