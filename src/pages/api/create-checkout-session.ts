@@ -1,7 +1,7 @@
 // src/pages/api/create-checkout-session.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
-import { db } from '@/lib/firebase'; // ✅ make sure this path is correct
+import { db } from '../../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
