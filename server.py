@@ -113,5 +113,6 @@ def generate_story():
 
 
 if __name__ == "__main__":
-    print("✅ Flask Server Starting on port 5001...")
-    app.run(debug=True, host="0.0.0.0", port=5001)  # ✅ Add host="0.0.0.0"
+    port = int(os.environ.get("PORT", 5000))  # 👈 fallback for local dev
+    print(f"✅ Flask Server Starting on port {port}...")
+    app.run(debug=True, host="0.0.0.0", port=port)
