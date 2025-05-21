@@ -114,4 +114,4 @@ def generate_story():
 
 if __name__ == "__main__":
     print("✅ Flask Server Starting on port 5001...")
-    app.run(debug=True, port=5001)
+    app.run(debug=True, host="0.0.0.0", port=5001)  # ✅ Add host="0.0.0.0"
