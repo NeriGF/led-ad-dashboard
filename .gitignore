@@ -1,2 +1,3 @@
 # Ignore local env variables
 .env.local
+.env
