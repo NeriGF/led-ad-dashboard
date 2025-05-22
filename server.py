@@ -57,6 +57,8 @@ def handle_options():
 def generate_story():
     try:
         data = request.json
+        print("📥 Incoming request:", data)
+
         brand_name = data.get("brandName", "Unknown Brand")
         campaign_goal = data.get("campaignGoal", "Brand Awareness")
 
@@ -73,11 +75,9 @@ def generate_story():
 
         story = response["choices"][0]["message"]["content"].strip()
 
-        # 🔥 Generate the image URL from DALL·E
         image_prompt = f"{brand_name} marketing campaign visual, {campaign_goal}"
         image_url = generate_image(image_prompt)
 
-        # ✅ Save to Firestore (now inside the function scope)
         doc_ref = db.collection("marketing_stories").document(str(uuid.uuid4()))
         doc_ref.set({
             "brandName": brand_name,
@@ -87,29 +87,18 @@ def generate_story():
             "createdAt": firestore.SERVER_TIMESTAMP
         })
 
-        # ✅ Return both story and image URL
-        result = {
+        return jsonify({
             "story": story,
             "imageUrl": image_url,
             "choices": ["Continue", "Explore Features", "Buy Now"]
-        }
-
-        # response = jsonify({"story": story, "choices": ["Continue", "Explore Features", "Buy Now"]})
-        # response.headers.add("Access-Control-Allow-Origin", "*")
-        # return response
-        response = jsonify({
-            "story": story,
-            "imageUrl": image_url,  # ✅ Add this
-            "choices": ["Continue", "Explore Features", "Buy Now"]
         })
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response
-
 
     except Exception as e:
-        response = jsonify({"error": "Server error", "details": str(e)})
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response, 500
+        import traceback
+        print("❌ ERROR in /generate-story:")
+        traceback.print_exc()
+        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
+
 
 
 if __name__ == "__main__":
