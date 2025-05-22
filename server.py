@@ -3,7 +3,6 @@ from flask_cors import CORS
 import os
 import uuid
 import base64
-import json
 import tempfile
 from dotenv import load_dotenv
 from firebase_admin import credentials, firestore, initialize_app
@@ -60,20 +59,14 @@ def generate_story():
 
         prompt = f"Create a compelling AI-powered marketing story for '{brand_name}', focused on '{campaign_goal}'."
 
-       
-
-client = OpenAI()
-
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=[
-        {"role": "system", "content": "You are a marketing AI."},
-        {"role": "user", "content": prompt},
-    ],
-    max_tokens=200
-)
-story = response.choices[0].message.content.strip()
-
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a marketing AI."},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=200
+        )
 
         story = response.choices[0].message.content.strip()
         image_prompt = f"{brand_name} marketing campaign visual, {campaign_goal}"
