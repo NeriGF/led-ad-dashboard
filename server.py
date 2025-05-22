@@ -60,16 +60,22 @@ def generate_story():
 
         prompt = f"Create a compelling AI-powered marketing story for '{brand_name}', focused on '{campaign_goal}'."
 
-        chat_response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a marketing AI."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=200
-        )
+       
 
-        story = chat_response.choices[0].message.content.strip()
+client = OpenAI()
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {"role": "system", "content": "You are a marketing AI."},
+        {"role": "user", "content": prompt},
+    ],
+    max_tokens=200
+)
+story = response.choices[0].message.content.strip()
+
+
+        story = response.choices[0].message.content.strip()
         image_prompt = f"{brand_name} marketing campaign visual, {campaign_goal}"
         image_url = generate_image(image_prompt)
 
