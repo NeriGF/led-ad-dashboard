@@ -1,6 +1,6 @@
 // led_ad_dashboard/src/pages/index.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
@@ -38,15 +38,17 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const [ads, setAds] = useState([]);
-  const [file, setFile] = useState(null);
+  const [user, setUser] = useState<any>(null);
+  const [ads, setAds] = useState<any[]>([]);
+  const [file, setFile] = useState<File | null>(null);
   const [textAd, setTextAd] = useState('');
 
-  onAuthStateChanged(auth, (currentUser) => {
-    if (currentUser) setUser(currentUser);
-    else setUser(null);
-  });
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const login = async () => {
     const provider = new GoogleAuthProvider();
@@ -87,7 +89,7 @@ export default function Home() {
           <button onClick={logout} className="text-red-600">Sign out</button>
 
           <h2 className="text-xl mt-4">Upload Ad</h2>
-          <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+          <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           <input
             type="text"
             placeholder="Or enter text ad"
