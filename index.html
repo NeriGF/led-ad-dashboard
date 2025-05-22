@@ -1,71 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Generated Story-Driven Marketing</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .container { max-width: 500px; margin: auto; padding: 20px; }
-        .story-box { background: #f4f4f4; padding: 10px; border-radius: 5px; margin-top: 10px; }
-        button { margin: 5px; padding: 10px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Story Marketing</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #f8f8f8; }
+    .container { max-width: 600px; margin: auto; padding: 20px; background: #fff; border-radius: 10px; }
+    .story-box { background: #f0f0f0; padding: 15px; border-radius: 8px; margin-top: 10px; text-align: left; }
+    img { max-width: 100%; margin-top: 15px; border-radius: 8px; }
+    button { padding: 10px 15px; margin: 10px 5px; cursor: pointer; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>AI-Generated Story-Driven Marketing</h2>
-        <input id="brand" type="text" placeholder="Enter Brand Name" /><br><br>
-        <input id="goal" type="text" placeholder="Enter Campaign Goal" /><br><br>
-        <button onclick="generateStory()">Generate Story</button>
+  <div class="container">
+    <h2>🧠 AI-Generated Story-Driven Marketing</h2>
 
-        <div id="storyOutput" class="story-box"></div>
-        <div id="generatedImage"></div>
-        <div id="choices"></div>
+    <input id="brand" type="text" placeholder="Enter Brand Name" /><br/><br/>
+    <input id="goal" type="text" placeholder="Enter Campaign Goal" /><br/><br/>
+    <button onclick="generateStory()">Generate Story</button>
+
+    <div id="storyOutput" class="story-box"></div>
+    <img id="storyImage" style="display: none;" />
+
+    <div>
+      <button id="downloadBtn" style="display:none;">⬇️ Download Story</button>
+      <button id="paywallBtn" style="display:block;">🔓 Unlock Download</button>
     </div>
 
-   <script>
+    <div id="choices"></div>
+  </div>
+
+  <script>
     async function generateStory() {
-        const brandName = document.getElementById("brand").value;
-        const campaignGoal = document.getElementById("goal").value;
+      const brandName = document.getElementById("brand").value;
+      const campaignGoal = document.getElementById("goal").value;
 
-        document.getElementById("storyOutput").innerHTML = "Generating story...";
-        document.getElementById("choices").innerHTML = "";
-        document.getElementById("generatedImage").innerHTML = "";
+      document.getElementById("storyOutput").innerHTML = "Generating story...";
+      document.getElementById("storyImage").style.display = "none";
 
-        try {
-            const response = await fetch("https://led-ad-dashboard.onrender.com", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ brandName, campaignGoal })
-            });
+      try {
+        const response = await fetch("https://led-ad-dashboard.onrender.com/generate-story", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ brandName, campaignGoal })
+        });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
+        const data = await response.json();
 
-            const data = await response.json();
-            document.getElementById("storyOutput").innerHTML = `<p>${data.story}</p>`;
+        document.getElementById("storyOutput").innerHTML = `<p>${data.story}</p>`;
 
-            // ✅ Add image
-            if (data.imageUrl) {
-                document.getElementById("generatedImage").innerHTML =
-                    `<img src="${data.imageUrl}" alt="Generated Image" style="max-width: 100%; margin-top: 10px;" />`;
-            }
-
-            // Show interactive choices
-            const choicesDiv = document.getElementById("choices");
-            data.choices.forEach(choice => {
-                const button = document.createElement("button");
-                button.innerText = choice;
-                button.onclick = () => alert(`You chose: ${choice}`);
-                choicesDiv.appendChild(button);
-            });
-
-        } catch (error) {
-            console.error("Error:", error);
-            document.getElementById("storyOutput").innerHTML = "Error fetching story.";
+        if (data.imageUrl) {
+          const image = document.getElementById("storyImage");
+          image.src = data.imageUrl;
+          image.style.display = "block";
         }
+
+        const choicesDiv = document.getElementById("choices");
+        choicesDiv.innerHTML = "";
+        data.choices.forEach(choice => {
+          const btn = document.createElement("button");
+          btn.innerText = choice;
+          btn.onclick = () => alert(`You chose: ${choice}`);
+          choicesDiv.appendChild(btn);
+        });
+
+      } catch (error) {
+        console.error("Error:", error);
+        document.getElementById("storyOutput").innerHTML = "Error fetching story.";
+      }
     }
-</script>
+
+    // 🔐 Stripe Session Validation
+    const sessionId = new URL(window.location.href).searchParams.get("session_id");
+    if (sessionId) {
+      fetch(`https://led-ad-dashboard-git-main-neris-projects-690a6b96.vercel.app/api/verify-session?session_id=${sessionId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.paid) {
+            document.getElementById("downloadBtn").style.display = "block";
+            document.getElementById("paywallBtn").style.display = "none";
+          }
+        });
+    }
+
+    // 💳 Checkout handler
+    document.getElementById("paywallBtn").onclick = async () => {
+      const res = await fetch("https://led-ad-dashboard-git-main-neris-projects-690a6b96.vercel.app/api/create-checkout-session", {
+        method: "POST"
+      });
+      const data = await res.json();
+      window.location.href = data.url;
+    };
+  </script>
 </body>
 </html>
