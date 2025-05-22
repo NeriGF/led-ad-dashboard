@@ -1,28 +1,55 @@
-// src/pages/story.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function StoryPage() {
   const [brandName, setBrandName] = useState("");
   const [campaignGoal, setCampaignGoal] = useState("");
   const [story, setStory] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [choices, setChoices] = useState<string[]>([]);
+  const [paid, setPaid] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const sessionId = new URL(window.location.href).searchParams.get("session_id");
+    if (sessionId) {
+      fetch(`/api/verify-session?session_id=${sessionId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.paid) setPaid(true);
+        });
+    }
+  }, []);
 
   const generateStory = async () => {
     setLoading(true);
     setStory("");
     setImageUrl("");
+    setChoices([]);
 
-    const res = await fetch("http://localhost:5001/generate-story", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ brandName, campaignGoal }),
-    });
+    try {
+      const res = await fetch("https://led-ad-dashboard.onrender.com/generate-story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandName, campaignGoal }),
+      });
 
-    const data = await res.json();
-    setStory(data.story);
-    setImageUrl(data.imageUrl);
+      const data = await res.json();
+      setStory(data.story);
+      setImageUrl(data.imageUrl);
+      setChoices(data.choices || []);
+    } catch (err) {
+      setStory("Error generating story.");
+    }
+
     setLoading(false);
+  };
+
+  const handleCheckout = async () => {
+    const res = await fetch("/api/create-checkout-session", {
+      method: "POST",
+    });
+    const data = await res.json();
+    window.location.href = data.url;
   };
 
   return (
@@ -58,9 +85,19 @@ export default function StoryPage() {
           )}
 
           <div style={{ marginTop: 20 }}>
-            <button>Continue</button>
-            <button style={{ marginLeft: 10 }}>Explore Features</button>
-            <button style={{ marginLeft: 10 }}>Buy Now</button>
+            {choices.map((choice, idx) => (
+              <button key={idx} style={{ marginRight: 10 }}>
+                {choice}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 30 }}>
+            {!paid ? (
+              <button onClick={handleCheckout}>🔓 Unlock Download</button>
+            ) : (
+              <button>⬇️ Download Story</button>
+            )}
           </div>
         </div>
       )}
