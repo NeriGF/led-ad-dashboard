@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+
 export default function PreviewPage() {
   const [data, setData] = useState(null);
   const [userHasPaid, setUserHasPaid] = useState(false);
