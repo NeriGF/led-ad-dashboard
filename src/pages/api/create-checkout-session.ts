@@ -15,24 +15,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Ad Slot (Preview Plan)',
-            },
-            unit_amount: 299, // $2.99
-          },
-          quantity: 1,
+  mode: 'payment',
+  payment_method_types: ['card'],
+  line_items: [
+    {
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Ad Slot (Preview Plan)',
         },
-      ],
-      // ✅ This is where session_id gets passed in URL
-      success_url: `${req.headers.origin}/upload?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.origin}/`,
-    });
+        unit_amount: 299,
+      },
+      quantity: 1,
+    },
+  ],
+  success_url: `https://led-ad-dashboard-git-main-neris-projects-690a6b96.vercel.app/story?session_id={CHECKOUT_SESSION_ID}`,
+  cancel_url: `https://led-ad-dashboard-git-main-neris-projects-690a6b96.vercel.app/`,
+});
 
     // ✅ OPTIONAL: Save Stripe session ID to Firestore
     await addDoc(collection(db, 'stripe_sessions'), {
