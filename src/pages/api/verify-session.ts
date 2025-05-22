@@ -23,6 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error: any) {
     console.error("Stripe verify error:", error);
+    console.error("Stripe session check failed:", error); // 👈 will show in Vercel logs
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
