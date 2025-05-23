@@ -22,7 +22,7 @@ cred = credentials.Certificate(firebase_path)
 initialize_app(cred)
 db = firestore.client()
 
-# 🔑 OpenAI Client
+# 🔑 OpenAI key setup (modern SDK)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # 🚀 Flask app
@@ -33,14 +33,14 @@ CORS(app, resources={r"/generate-story": {"origins": "*"}}, supports_credentials
 def home():
     return "✅ Flask Server is Running!"
 
-# 🧠 Image generator
+# 🧠 Image generator using DALL·E
 def generate_image(prompt):
-    image_response = client.images.generate(
+    image_response = openai.Image.create(
         prompt=prompt,
         n=1,
         size="1024x1024"
     )
-    return image_response.data[0].url
+    return image_response["data"][0]["url"]
 
 @app.route("/generate-story", methods=["POST"])
 def generate_story():
@@ -54,23 +54,22 @@ def generate_story():
         print("📦 Request Payload:", data)
         print("🔑 Using OpenAI Key:", os.getenv("OPENAI_API_KEY")[:8] + "...")
 
-        # 🧠 Call OpenAI Chat
+        # ✨ Chat Completion (GPT-4)
         response = openai.ChatCompletion.create(
-    model="gpt-4",
-    messages=[
-        {"role": "system", "content": "You are a marketing AI."},
-        {"role": "user", "content": prompt},
-    ],
-    max_tokens=200
-)
-story = response["choices"][0]["message"]["content"].strip()
-
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a marketing AI."},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=200
+        )
+        story = response["choices"][0]["message"]["content"].strip()
 
         # 🖼️ Generate image
         image_prompt = f"{brand_name} marketing campaign visual, {campaign_goal}"
         image_url = generate_image(image_prompt)
 
-        # 🧾 Save to Firestore
+        # 📦 Save to Firestore
         doc_ref = db.collection("marketing_stories").document(str(uuid.uuid4()))
         doc_ref.set({
             "brandName": brand_name,
@@ -90,8 +89,10 @@ story = response["choices"][0]["message"]["content"].strip()
         import traceback
         print("❌ ERROR in /generate-story:")
         traceback.print_exc()
-        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
-
+        return jsonify({
+            "error": "Internal Server Error",
+            "details": str(e)
+        }), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
