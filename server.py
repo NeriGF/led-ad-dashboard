@@ -6,7 +6,7 @@ import base64
 import tempfile
 from dotenv import load_dotenv
 from firebase_admin import credentials, firestore, initialize_app
-from openai import OpenAI
+import openai
 
 # Load environment variables
 load_dotenv()
@@ -23,7 +23,7 @@ initialize_app(cred)
 db = firestore.client()
 
 # 🔑 OpenAI Client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # 🚀 Flask app
 app = Flask(__name__)
@@ -55,16 +55,16 @@ def generate_story():
         print("🔑 Using OpenAI Key:", os.getenv("OPENAI_API_KEY")[:8] + "...")
 
         # 🧠 Call OpenAI Chat
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a marketing AI."},
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=200
-        )
+        response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages=[
+        {"role": "system", "content": "You are a marketing AI."},
+        {"role": "user", "content": prompt},
+    ],
+    max_tokens=200
+)
+story = response["choices"][0]["message"]["content"].strip()
 
-        story = response.choices[0].message.content.strip()
 
         # 🖼️ Generate image
         image_prompt = f"{brand_name} marketing campaign visual, {campaign_goal}"
