@@ -59,18 +59,27 @@ def generate_story():
 
         prompt = f"Create a compelling AI-powered marketing story for '{brand_name}', focused on '{campaign_goal}'."
 
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a marketing AI."},
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=200
-        )
+       try:
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a marketing AI."},
+            {"role": "user", "content": prompt},
+        ],
+        max_tokens=200
+    )
+    story = response.choices[0].message.content.strip()
+
+except Exception as ai_error:
+    print("❌ OpenAI Error:", ai_error)
+    return jsonify({"error": "OpenAI call failed", "details": str(ai_error)}), 500
+
 
         story = response.choices[0].message.content.strip()
         image_prompt = f"{brand_name} marketing campaign visual, {campaign_goal}"
         image_url = generate_image(image_prompt)
+        print("🔑 Using OpenAI Key:", os.getenv("OPENAI_API_KEY")[:8] + "...")
+        print("📦 Request Payload:", data)
 
         doc_ref = db.collection("marketing_stories").document(str(uuid.uuid4()))
         doc_ref.set({
