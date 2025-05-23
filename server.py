@@ -42,14 +42,6 @@ def generate_image(prompt):
     )
     return image_response.data[0].url
 
-@app.route("/generate-story", methods=["OPTIONS"])
-def handle_options():
-    response = jsonify({"message": "CORS preflight successful"})
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type")
-    return response, 200
-
 @app.route("/generate-story", methods=["POST"])
 def generate_story():
     try:
@@ -59,28 +51,26 @@ def generate_story():
 
         prompt = f"Create a compelling AI-powered marketing story for '{brand_name}', focused on '{campaign_goal}'."
 
-       try:
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are a marketing AI."},
-            {"role": "user", "content": prompt},
-        ],
-        max_tokens=200
-    )
-    story = response.choices[0].message.content.strip()
+        print("📦 Request Payload:", data)
+        print("🔑 Using OpenAI Key:", os.getenv("OPENAI_API_KEY")[:8] + "...")
 
-except Exception as ai_error:
-    print("❌ OpenAI Error:", ai_error)
-    return jsonify({"error": "OpenAI call failed", "details": str(ai_error)}), 500
-
+        # 🧠 Call OpenAI Chat
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a marketing AI."},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=200
+        )
 
         story = response.choices[0].message.content.strip()
+
+        # 🖼️ Generate image
         image_prompt = f"{brand_name} marketing campaign visual, {campaign_goal}"
         image_url = generate_image(image_prompt)
-        print("🔑 Using OpenAI Key:", os.getenv("OPENAI_API_KEY")[:8] + "...")
-        print("📦 Request Payload:", data)
 
+        # 🧾 Save to Firestore
         doc_ref = db.collection("marketing_stories").document(str(uuid.uuid4()))
         doc_ref.set({
             "brandName": brand_name,
@@ -101,6 +91,7 @@ except Exception as ai_error:
         print("❌ ERROR in /generate-story:")
         traceback.print_exc()
         return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
