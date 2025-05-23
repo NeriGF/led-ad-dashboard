@@ -1,5 +1,5 @@
 flask
 flask-cors
-openai
+openai>=1.2.3
 python-dotenv
 firebase-admin
