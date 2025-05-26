@@ -1,3 +1,25 @@
-# Ignore local env variables
+# Ignore environment files
 .env.local
 .env
+
+# Ignore Node dependencies
+node_modules/
+
+# Ignore system files
+.DS_Store
+
+# Ignore build output
+out/
+dist/
+.next/
+.cache/
+
+# Ignore Remotion renders
+*.mp4
+*.mov
+*.webm
+render/
+
+# IDE/editor files
+.vscode/
+.idea/
